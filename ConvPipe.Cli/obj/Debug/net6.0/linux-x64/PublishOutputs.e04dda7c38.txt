@@ -1,4 +1,0 @@
-/home/vit/Projects/ConvPipe/ConvPipe.Cli/bin/Debug/net6.0/linux-x64/publish/ConvPipe.Cli.pdb
-/home/vit/Projects/ConvPipe/ConvPipe.Cli/bin/Debug/net6.0/linux-x64/publish/liblua54.so
-/home/vit/Projects/ConvPipe/ConvPipe.Cli/bin/Debug/net6.0/linux-x64/publish/ConvPipe.pdb
-/home/vit/Projects/ConvPipe/ConvPipe.Cli/bin/Debug/net6.0/linux-x64/publish/ConvPipe.Cli
