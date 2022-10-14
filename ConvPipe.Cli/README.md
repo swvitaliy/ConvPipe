@@ -21,7 +21,7 @@ dotnet publish -c release -r linux-x64 \
 
 ```bin
 mkdir -p ~/Bin/ConvPipe
-cp -p bin/release/net6.0/linux-x64/publish/* ~/Bin/ConvPipe
+cp -pr bin/release/net6.0/linux-x64/publish/* ~/Bin/ConvPipe
 chmod ug+x ~/Bin/ConvPipe/ConvPipe.Cli
 ln -s ~/Bin/ConvPipe/ConvPipe.Cli ~/Bin/convpipe
 echo 'export PATH=$PATH:~/Bin' >> ~/.bashrc && source ~/.bashrc
