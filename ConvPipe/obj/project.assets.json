@@ -1,0 +1,641 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETStandard,Version=v2.1": {
+      "Esprima/3.0.0-beta-3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        }
+      },
+      "Jint/3.0.0-beta-2039": {
+        "type": "package",
+        "dependencies": {
+          "Esprima": "3.0.0-beta-3"
+        },
+        "compile": {
+          "lib/netstandard2.1/Jint.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Jint.dll": {}
+        }
+      },
+      "KeraLua/1.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/KeraLua.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/KeraLua.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/android-arm/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-arm"
+          },
+          "runtimes/android-arm64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-arm64"
+          },
+          "runtimes/android-x64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-x64"
+          },
+          "runtimes/android-x86/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-x86"
+          },
+          "runtimes/ios/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "ios"
+          },
+          "runtimes/ios/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "ios"
+          },
+          "runtimes/linux-x64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/maccatalyst/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "maccatalyst"
+          },
+          "runtimes/maccatalyst/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "maccatalyst"
+          },
+          "runtimes/osx/native/liblua54.dylib": {
+            "assetType": "native",
+            "rid": "osx"
+          },
+          "runtimes/tvos/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "tvos"
+          },
+          "runtimes/tvos/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "tvos"
+          },
+          "runtimes/win-arm/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-arm"
+          },
+          "runtimes/win-arm64/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-arm64"
+          },
+          "runtimes/win-x64/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
+      "NLua/1.6.0": {
+        "type": "package",
+        "dependencies": {
+          "KeraLua": "1.3.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/NLua.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NLua.dll": {}
+        }
+      },
+      "org.matheval/1.0.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/org.matheval.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/org.matheval.dll": {}
+        }
+      }
+    },
+    ".NETStandard,Version=v2.1/linux-x64": {
+      "Esprima/3.0.0-beta-3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        }
+      },
+      "Jint/3.0.0-beta-2039": {
+        "type": "package",
+        "dependencies": {
+          "Esprima": "3.0.0-beta-3"
+        },
+        "compile": {
+          "lib/netstandard2.1/Jint.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Jint.dll": {}
+        }
+      },
+      "KeraLua/1.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/KeraLua.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/KeraLua.dll": {}
+        },
+        "native": {
+          "runtimes/linux-x64/native/liblua54.so": {}
+        }
+      },
+      "NLua/1.6.0": {
+        "type": "package",
+        "dependencies": {
+          "KeraLua": "1.3.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/NLua.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NLua.dll": {}
+        }
+      },
+      "org.matheval/1.0.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/org.matheval.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/org.matheval.dll": {}
+        }
+      }
+    },
+    "net6.0": {
+      "Esprima/3.0.0-beta-3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        }
+      },
+      "Jint/3.0.0-beta-2039": {
+        "type": "package",
+        "dependencies": {
+          "Esprima": "3.0.0-beta-3"
+        },
+        "compile": {
+          "lib/netstandard2.1/Jint.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Jint.dll": {}
+        }
+      },
+      "KeraLua/1.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/KeraLua.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/KeraLua.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/android-arm/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-arm"
+          },
+          "runtimes/android-arm64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-arm64"
+          },
+          "runtimes/android-x64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-x64"
+          },
+          "runtimes/android-x86/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "android-x86"
+          },
+          "runtimes/ios/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "ios"
+          },
+          "runtimes/ios/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "ios"
+          },
+          "runtimes/linux-x64/native/liblua54.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/maccatalyst/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "maccatalyst"
+          },
+          "runtimes/maccatalyst/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "maccatalyst"
+          },
+          "runtimes/osx/native/liblua54.dylib": {
+            "assetType": "native",
+            "rid": "osx"
+          },
+          "runtimes/tvos/native/liblua54.framework/Info.plist": {
+            "assetType": "native",
+            "rid": "tvos"
+          },
+          "runtimes/tvos/native/liblua54.framework/liblua54": {
+            "assetType": "native",
+            "rid": "tvos"
+          },
+          "runtimes/win-arm/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-arm"
+          },
+          "runtimes/win-arm64/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-arm64"
+          },
+          "runtimes/win-x64/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/lua54.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
+      "NLua/1.6.0": {
+        "type": "package",
+        "dependencies": {
+          "KeraLua": "1.3.1"
+        },
+        "compile": {
+          "lib/net6.0/NLua.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/NLua.dll": {}
+        }
+      },
+      "org.matheval/1.0.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.1/org.matheval.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/org.matheval.dll": {}
+        }
+      }
+    },
+    "net6.0/linux-x64": {
+      "Esprima/3.0.0-beta-3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {}
+        }
+      },
+      "Jint/3.0.0-beta-2039": {
+        "type": "package",
+        "dependencies": {
+          "Esprima": "3.0.0-beta-3"
+        },
+        "compile": {
+          "lib/netstandard2.1/Jint.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Jint.dll": {}
+        }
+      },
+      "KeraLua/1.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/KeraLua.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/KeraLua.dll": {}
+        },
+        "native": {
+          "runtimes/linux-x64/native/liblua54.so": {}
+        }
+      },
+      "NLua/1.6.0": {
+        "type": "package",
+        "dependencies": {
+          "KeraLua": "1.3.1"
+        },
+        "compile": {
+          "lib/net6.0/NLua.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/NLua.dll": {}
+        }
+      },
+      "org.matheval/1.0.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.1/org.matheval.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/org.matheval.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Esprima/3.0.0-beta-3": {
+      "sha512": "zM8nygBZZpTaVRyMj6TgEaaHti3QqOlwy/qUJpVri+sQXLxNtdGEB0o1pqYJazBdm4CeIixGUpGeiw7J/jp8rg==",
+      "type": "package",
+      "path": "esprima/3.0.0-beta-3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "esprima.3.0.0-beta-3.nupkg.sha512",
+        "esprima.nuspec",
+        "lib/net462/Esprima.dll",
+        "lib/net462/Esprima.xml",
+        "lib/netstandard2.0/Esprima.dll",
+        "lib/netstandard2.0/Esprima.xml",
+        "lib/netstandard2.1/Esprima.dll",
+        "lib/netstandard2.1/Esprima.xml"
+      ]
+    },
+    "Jint/3.0.0-beta-2039": {
+      "sha512": "UxU+yrnWSezptCfTj48g5dfz7vRvMxf6i6rR0K/dBfUaEFiMN2LErjtvzCOrf/xH7fDyDcx8EZPRhDJgbmYu5w==",
+      "type": "package",
+      "path": "jint/3.0.0-beta-2039",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "jint.3.0.0-beta-2039.nupkg.sha512",
+        "jint.nuspec",
+        "lib/net462/Jint.dll",
+        "lib/netstandard2.0/Jint.dll",
+        "lib/netstandard2.1/Jint.dll"
+      ]
+    },
+    "KeraLua/1.3.1": {
+      "sha512": "DSZkJx3+9YmJONylrJY2xvjmBBT6oPZO1Iv+MBZh4Ta8KsYewKmpp5n+yW2J5vkIxkJ1yxiQuHE+iKw25Kw6GA==",
+      "type": "package",
+      "path": "keralua/1.3.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "build/net46/KeraLua.targets",
+        "keralua.1.3.1.nupkg.sha512",
+        "keralua.nuspec",
+        "lib/MonoAndroid/KeraLua.dll",
+        "lib/MonoAndroid/KeraLua.xml",
+        "lib/net46/KeraLua.dll",
+        "lib/net46/KeraLua.xml",
+        "lib/net6.0-android28/KeraLua.dll",
+        "lib/net6.0-android28/KeraLua.xml",
+        "lib/net6.0-ios11.0/KeraLua.dll",
+        "lib/net6.0-ios11.0/KeraLua.xml",
+        "lib/net6.0-maccatalyst13.0/KeraLua.dll",
+        "lib/net6.0-maccatalyst13.0/KeraLua.xml",
+        "lib/net6.0-macos10.13/KeraLua.dll",
+        "lib/net6.0-macos10.13/KeraLua.xml",
+        "lib/net6.0-tvos11.0/KeraLua.dll",
+        "lib/net6.0-tvos11.0/KeraLua.xml",
+        "lib/net6.0/KeraLua.dll",
+        "lib/net6.0/KeraLua.xml",
+        "lib/netstandard2.0/KeraLua.dll",
+        "lib/netstandard2.0/KeraLua.xml",
+        "lib/uap10.0/KeraLua.dll",
+        "lib/uap10.0/KeraLua.pri",
+        "lib/uap10.0/KeraLua.xml",
+        "lib/xamarinios/KeraLua.dll",
+        "lib/xamarinios/KeraLua.xml",
+        "lib/xamarinmac/KeraLua.dll",
+        "lib/xamarinmac/KeraLua.xml",
+        "lib/xamarintvos/KeraLua.dll",
+        "lib/xamarintvos/KeraLua.xml",
+        "runtimes/android-arm/native/liblua54.so",
+        "runtimes/android-arm64/native/liblua54.so",
+        "runtimes/android-x64/native/liblua54.so",
+        "runtimes/android-x86/native/liblua54.so",
+        "runtimes/ios/native/liblua54.framework/Info.plist",
+        "runtimes/ios/native/liblua54.framework/liblua54",
+        "runtimes/linux-x64/native/liblua54.so",
+        "runtimes/maccatalyst/native/liblua54.framework/Info.plist",
+        "runtimes/maccatalyst/native/liblua54.framework/liblua54",
+        "runtimes/osx/native/liblua54.dylib",
+        "runtimes/tvos/native/liblua54.framework/Info.plist",
+        "runtimes/tvos/native/liblua54.framework/liblua54",
+        "runtimes/win-arm/native/lua54.dll",
+        "runtimes/win-arm64/native/lua54.dll",
+        "runtimes/win-x64/native/lua54.dll",
+        "runtimes/win-x86/native/lua54.dll",
+        "runtimes/win10-arm/nativeassets/uap10.0/lua54.dll",
+        "runtimes/win10-arm64/nativeassets/uap10.0/lua54.dll",
+        "runtimes/win10-x64/nativeassets/uap10.0/lua54.dll",
+        "runtimes/win10-x86/nativeassets/uap10.0/lua54.dll"
+      ]
+    },
+    "NLua/1.6.0": {
+      "sha512": "0+p4yrJoAGfsMuoZpcdSpp8jNHrZs9nyGPoYLbHaxzqbPZIS8RhBO1fnQLYsECrTMiQVledR3bDkEfRybjBdpw==",
+      "type": "package",
+      "path": "nlua/1.6.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/MonoAndroid/NLua.dll",
+        "lib/MonoAndroid/NLua.pdb",
+        "lib/net46/NLua.dll",
+        "lib/net6.0-android28/NLua.dll",
+        "lib/net6.0-ios11.0/NLua.dll",
+        "lib/net6.0-maccatalyst13.0/NLua.dll",
+        "lib/net6.0-macos10.13/NLua.dll",
+        "lib/net6.0-tvos11.0/NLua.dll",
+        "lib/net6.0/NLua.dll",
+        "lib/netstandard2.0/NLua.dll",
+        "lib/uap10.0/NLua.dll",
+        "lib/uap10.0/NLua.pri",
+        "lib/xamarinios/NLua.dll",
+        "lib/xamarinios/NLua.pdb",
+        "lib/xamarinmac/NLua.dll",
+        "lib/xamarinmac/NLua.pdb",
+        "lib/xamarintvos/NLua.dll",
+        "lib/xamarintvos/NLua.pdb",
+        "nlua.1.6.0.nupkg.sha512",
+        "nlua.nuspec"
+      ]
+    },
+    "org.matheval/1.0.0.2": {
+      "sha512": "BdfsFu8+p4wN89oRaZ0phYkmE6lzM4gbBq1mHX3BWLJCWGJqme9BMm/euLv8XSugrXMCHUnXZjX3n2QOqwjBpg==",
+      "type": "package",
+      "path": "org.matheval/1.0.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net35/org.matheval.dll",
+        "lib/net40/org.matheval.dll",
+        "lib/net45/org.matheval.dll",
+        "lib/net46/org.matheval.dll",
+        "lib/net461/org.matheval.dll",
+        "lib/net462/org.matheval.dll",
+        "lib/net47/org.matheval.dll",
+        "lib/net471/org.matheval.dll",
+        "lib/net472/org.matheval.dll",
+        "lib/net48/org.matheval.dll",
+        "lib/netcoreapp2.1/org.matheval.dll",
+        "lib/netcoreapp3.1/org.matheval.dll",
+        "lib/netstandard2.0/org.matheval.dll",
+        "org.matheval.1.0.0.2.nupkg.sha512",
+        "org.matheval.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETStandard,Version=v2.1": [
+      "Jint >= 3.0.0-beta-2039",
+      "NLua >= 1.6.0",
+      "org.matheval >= 1.0.0.2"
+    ],
+    "net6.0": [
+      "Jint >= 3.0.0-beta-2039",
+      "NLua >= 1.6.0",
+      "org.matheval >= 1.0.0.2"
+    ]
+  },
+  "packageFolders": {
+    "/home/vit/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "0.0.2",
+    "restore": {
+      "projectUniqueName": "/home/vit/Projects/ConvPipe/ConvPipe/ConvPipe.csproj",
+      "projectName": "ConvPipe",
+      "projectPath": "/home/vit/Projects/ConvPipe/ConvPipe/ConvPipe.csproj",
+      "packagesPath": "/home/vit/.nuget/packages/",
+      "outputPath": "/home/vit/Projects/ConvPipe/ConvPipe/obj/",
+      "projectStyle": "PackageReference",
+      "crossTargeting": true,
+      "configFilePaths": [
+        "/home/vit/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net6.0",
+        "netstandard2.1"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "projectReferences": {}
+        },
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net6.0": {
+        "targetAlias": "net6.0",
+        "dependencies": {
+          "Jint": {
+            "target": "Package",
+            "version": "[3.0.0-beta-2039, )"
+          },
+          "NLua": {
+            "target": "Package",
+            "version": "[1.6.0, )"
+          },
+          "org.matheval": {
+            "target": "Package",
+            "version": "[1.0.0.2, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
+            "version": "[6.0.6, 6.0.6]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Crossgen2.linux-x64",
+            "version": "[6.0.6, 6.0.6]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Runtime.linux-x64",
+            "version": "[6.0.6, 6.0.6]"
+          }
+        ],
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/home/vit/.dotnet/sdk/6.0.301/RuntimeIdentifierGraph.json"
+      },
+      "netstandard2.1": {
+        "targetAlias": "netstandard2.1",
+        "dependencies": {
+          "Jint": {
+            "target": "Package",
+            "version": "[3.0.0-beta-2039, )"
+          },
+          "NLua": {
+            "target": "Package",
+            "version": "[1.6.0, )"
+          },
+          "org.matheval": {
+            "target": "Package",
+            "version": "[1.0.0.2, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "NETStandard.Library": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/home/vit/.dotnet/sdk/6.0.301/RuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "linux-x64": {
+        "#import": []
+      }
+    }
+  }
+}

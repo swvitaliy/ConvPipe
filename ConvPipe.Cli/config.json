@@ -1,0 +1,6 @@
+{
+  //"jsLibFile": "lib.js",
+  "jsLibDirectory": "jsLib",
+  //"luaLibFile": "lib.lua"
+  "luaLibDirectory": "luaLib"
+}

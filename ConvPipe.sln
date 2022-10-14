@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvPipe", "ConvPipe\ConvPipe.csproj", "{42107DC1-DEE7-4121-879E-CE3B7234B003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvPipe.Tests", "ConvPipe.Tests\ConvPipe.Tests.csproj", "{0FD24DBC-1531-4F26-A976-E9B0BF7F2B07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvPipe.Cli", "ConvPipe.Cli\ConvPipe.Cli.csproj", "{1A84A3F7-D3D6-4703-838D-35E67B9D94D0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{42107DC1-DEE7-4121-879E-CE3B7234B003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42107DC1-DEE7-4121-879E-CE3B7234B003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42107DC1-DEE7-4121-879E-CE3B7234B003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42107DC1-DEE7-4121-879E-CE3B7234B003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD24DBC-1531-4F26-A976-E9B0BF7F2B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD24DBC-1531-4F26-A976-E9B0BF7F2B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD24DBC-1531-4F26-A976-E9B0BF7F2B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD24DBC-1531-4F26-A976-E9B0BF7F2B07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A84A3F7-D3D6-4703-838D-35E67B9D94D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A84A3F7-D3D6-4703-838D-35E67B9D94D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A84A3F7-D3D6-4703-838D-35E67B9D94D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A84A3F7-D3D6-4703-838D-35E67B9D94D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
