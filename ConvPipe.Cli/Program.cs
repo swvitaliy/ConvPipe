@@ -59,13 +59,13 @@ class Config
             throw new ArgumentOutOfRangeException("Both mutually exclusive options (JsLibFile and JsLibDirectory) are setting up.");
 
         if (!string.IsNullOrEmpty(JsLibFile))
-            return File.ReadAllText(JsLibFile);
+            return File.ReadAllText(ResolvePath(JsLibFile));
 
         if (!string.IsNullOrEmpty(JsLibDirectory))
-            return ReadAllDirectory(JsLibDirectory);
+            return ReadAllDirectory(ResolvePath(JsLibDirectory));
 
         if (!string.IsNullOrEmpty(JsLibFile))
-            return File.ReadAllText(JsLibFile);
+            return File.ReadAllText(ResolvePath(JsLibFile));
 
         return string.Empty;
     }
@@ -76,15 +76,20 @@ class Config
             throw new ArgumentOutOfRangeException("Both mutually exclusive options (LuaLibFile and LuaLibDirectory) are setting up.");
 
         if (!string.IsNullOrEmpty(LuaLibFile))
-            return File.ReadAllText(LuaLibFile);
+            return File.ReadAllText(ResolvePath(LuaLibFile));
 
         if (!string.IsNullOrEmpty(LuaLibDirectory))
-            return ReadAllDirectory(LuaLibDirectory);
+            return ReadAllDirectory(ResolvePath(LuaLibDirectory));
 
         if (!string.IsNullOrEmpty(LuaLibFile))
-            return File.ReadAllText(LuaLibFile);
+            return File.ReadAllText(ResolvePath(LuaLibFile));
 
         return string.Empty;
+    }
+
+    public static string ResolvePath(string path)
+    {
+        return Path.IsPathRooted(path) ? path : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
     }
 }
 
@@ -93,7 +98,7 @@ static class Handler
     public static void Run(Options opts)
     {
         if (!string.IsNullOrEmpty(opts.InputFile))
-            opts.Input = File.ReadAllText(opts.InputFile);
+            opts.Input = File.ReadAllText(Config.ResolvePath(opts.InputFile));
 
         else if (opts.Input == "-")
             opts.Input = Console.ReadLine() ?? string.Empty;
@@ -106,7 +111,7 @@ static class Handler
 
         if (!string.IsNullOrEmpty(opts.Config) && opts.Config != "-")
         {
-            var json = File.ReadAllText(opts.Config);
+            var json = File.ReadAllText(Config.ResolvePath(opts.Config));
             var config = JsonConvert.DeserializeObject<Config>(json);
             if (config != null)
             {
