@@ -5,9 +5,16 @@
 ## Build 
 
 ```bash
-dotnet publish -c release -r linux-x64 \
-  -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:SelfContained=true
+make publish
 ```
+
+Для сборки не содержащей рантайм машины dotnet:
+
+```bash
+make publish_min
+```
+
+В этом случае позаботьтесь о том, чтобы на вашем компьютере установлена переменная окружения `DOTNET_ROOT`.
 
 ## Install
 
