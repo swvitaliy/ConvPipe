@@ -8,13 +8,13 @@
         <PublishSingleFile>true</PublishSingleFile>
 
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DefaultItemExcludes>$(DefaultItemExcludes);publishoutput**</DefaultItemExcludes>
         <InvariantGlobalization>false</InvariantGlobalization>
 
-        <Version>0.0.2</Version>
+        <Version>0.0.3</Version>
     </PropertyGroup>
 
     <ItemGroup>

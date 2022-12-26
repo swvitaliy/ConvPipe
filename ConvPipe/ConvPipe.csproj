@@ -7,8 +7,8 @@
         <OutputType>Library</OutputType>
 
         <DefaultItemExcludes>$(DefaultItemExcludes)</DefaultItemExcludes>
-        <VersionPrefix>0.0.2</VersionPrefix>
-        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <VersionPrefix>0.0.3</VersionPrefix>
+        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
         <InvariantGlobalization>false</InvariantGlobalization>
     </PropertyGroup>
 
