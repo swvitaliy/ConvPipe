@@ -14,7 +14,7 @@
         <DefaultItemExcludes>$(DefaultItemExcludes);publishoutput**</DefaultItemExcludes>
         <InvariantGlobalization>false</InvariantGlobalization>
 
-        <Version>0.0.5</Version>
+        <Version>0.0.6</Version>
     </PropertyGroup>
 
     <ItemGroup>

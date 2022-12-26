@@ -2,6 +2,7 @@ using System;
 using ConvPipe;
 using NLua;
 using NUnit.Framework;
+using ConvPipe;
 
 namespace ConvPipe.Tests;
 

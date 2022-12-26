@@ -4,6 +4,7 @@ using System;
 using System.Dynamic;
 using CommandLine;
 using Newtonsoft.Json;
+using ConvPipe;
 
 CommandLine.Parser.Default.ParseArguments<Options>(args)
     .WithParsed(Handler.Run);
@@ -120,7 +121,7 @@ static class Handler
             }
         }
 
-        var cl = ConvPipe.ConverterLib.CreateWithDefaults(luaScript, jsScript, globVars);
+        var cl = ConverterLib.CreateWithDefaults(luaScript, jsScript, globVars);
         // Adding a new converter extensions here!
 
         var r = cl.ConvertPipe(opts.Pipeline, input);
