@@ -1,6 +1,9 @@
 using System.Collections;
+using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Xml.XPath;
 using Jint;
+using Jint.Native;
 using NLua;
 using org.matheval;
 
@@ -23,7 +26,7 @@ internal static class StringTokenizer
 
 public class ConverterLib
 {
-    public static ConverterLib CreateWithDefaults(string luaScript = null, string jsScript = null, Dictionary<string, object> globRef = null)
+    public static ConverterLib CreateWithDefaults(string luaScript = null, string jsScript = null, Dictionary<string, object> globRef = null, Action<object> log = null)
     {
         var convLib = new ConverterLib();
         DefaultConverters.InitializeLib(convLib);
@@ -36,7 +39,7 @@ public class ConverterLib
 
         if (jsScript != null)
         {
-            var jsc = new JsConverter(jsScript);
+            var jsc = new JsConverter(jsScript, null, log);
             jsc.InitializeLib(convLib);
         }
 
@@ -86,9 +89,24 @@ public class ConverterLib
         // return val;
 
         object ans = val;
+        bool eachMode = false;
         foreach (var conv in pipe)
         {
-            if (ans is IEnumerable<object>)
+            if (conv.First().ToLower() == "each")
+            {
+                if (conv is { Length: > 1 })
+                    ans = ((object[])ans).Select(item => ConvertExpr(conv[1..], item)).ToArray();
+                else
+                    eachMode = true;
+
+                continue;
+            }
+
+            if (eachMode)
+            {
+                ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
+            }
+            else if (ans is IEnumerable<object>)
                 ans = ConvertExprArray(conv, (object[])ans);
             else
                 ans = ConvertExpr(conv, ans);
@@ -192,17 +210,39 @@ public class LuaConverters : IDisposable
 
 public class JsConverter : IDisposable
 {
-    public JsConverter(string js, string modulesDir = null)
+    public JsConverter(string js, string modulesDir = null, Action<object> log = null)
     {
         LibScript = js;
+
         JsEngine = new Jint.Engine(options => {
-                options.LimitMemory(1_000_000);
-                options.TimeoutInterval(TimeSpan.FromSeconds(4));
-                options.MaxStatements(1000);
-                if (!string.IsNullOrEmpty(modulesDir))
-                    options.EnableModules(modulesDir);
-            })
-        .Execute(LibScript);
+            options.LimitMemory(5_000_000);
+            options.TimeoutInterval(TimeSpan.FromSeconds(4));
+            options.MaxStatements(1000);
+            if (!string.IsNullOrEmpty(modulesDir))
+                options.EnableModules(modulesDir);
+        });
+
+        if (log != null)
+        {
+            JsEngine.SetValue("log", log);
+            void Dump(object obj) => log(ObjectDumper.Dump(obj));
+            JsEngine.SetValue("dump", Dump);
+        }
+
+        object ConvertDelegate(string typeName, object val)
+        {
+            var methodName = "To" + typeName;
+            var method = typeof(Convert).GetMethod(methodName, new Type[] { val.GetType() });
+
+            if (method == null)
+                throw new ArgumentException("Unknown method " + methodName);
+
+            return method.Invoke(null, new [] {val});
+        }
+
+        JsEngine.SetValue("Type", ConvertDelegate);
+
+        JsEngine.Execute(LibScript);
     }
 
     public void Dispose()
@@ -259,13 +299,79 @@ public class PathFinderConverters
         var path = args[0].Trim('"');
         return FindPath(vals, path, multi: true);
     }
+}
 
+public static class XPathConverters
+{
+    public static void InitializeLib(ConverterLib convLib)
+    {
+        convLib.Converters.Add("XPathNav", XPathNav);
+        convLib.Converters.Add("XPathNavigator", XPathNav);
+        convLib.Converters.Add("XPathDoc", XPathDoc);
+        convLib.Converters.Add("XPathDocument", XPathDoc);
+        convLib.Converters.Add("XPath", XPath);
+
+        convLib.NAryConverters.Add("XPathNav", XPathNavN);
+        convLib.NAryConverters.Add("XPathNavigator", XPathNavN);
+        convLib.NAryConverters.Add("XPathDoc", XPathDocN);
+        convLib.NAryConverters.Add("XPathDocument", XPathDocN);
+        convLib.NAryConverters.Add("XPath", XPathN);
+    }
+
+    private static object XPathDoc(object val, string[] args)
+    {
+        return new XPathDocument(new StringReader((string)val));
+    }
+
+    private static object XPathNav(object val, string[] args)
+    {
+        var doc = new XPathDocument(new StringReader((string)val));
+        return doc.CreateNavigator();
+    }
+
+    private static object XPathDocN(object[] val, string[] args)
+        => val.Select(item => XPathDoc(item, args)).ToArray();
+
+    private static object XPathNavN(object[] val, string[] args)
+        => val.Select(item => XPathNav(item, args)).ToArray();
+
+    private static object XPath(object val, string[] args)
+    {
+        var navigator = val is XPathDocument xpd ? xpd.CreateNavigator() : (XPathNavigator)val;
+
+        if (args is not { Length: 1 })
+            throw new ArgumentException("expect exactly one argument");
+
+        string xpath = args[0].Trim('\'').Trim('"');
+
+        XPathExpression expression = navigator.Compile(xpath);
+        XPathNodeIterator iterator = navigator.Select(expression);
+
+        var list = new List<string>();
+        while (iterator.MoveNext())
+        {
+            XPathNavigator item = iterator.Current;
+            list.Add(item?.Value ?? string.Empty);
+        }
+
+        return list.ToArray();
+    }
+
+    private static object XPathN(object[] val, string[] args)
+        => val.Select(item => XPath(item, args)).ToArray();
 }
 
 public static class DefaultConverters
 {
     public static void InitializeLib(ConverterLib convLib)
     {
+        // Deprecated section. Use "Convert" instead.
+        convLib.Converters.Add("ToDate", ToDate);
+        convLib.Converters.Add("ToDecimal", ToDecimal);
+        convLib.Converters.Add("ToInt32", ToInt32);
+        convLib.Converters.Add("ToUInt32", ToUInt32);
+        // End of deprecated section
+
         convLib.Converters.Add("Convert", ConvertFn);
         convLib.Converters.Add("ToString", ToString);
         convLib.Converters.Add("ToLower", ToLower);
@@ -277,24 +383,36 @@ public static class DefaultConverters
         convLib.Converters.Add("Property", Property);
         convLib.Converters.Add("ItemProperty", ItemProperty);
         convLib.Converters.Add("ExprEval", ExprEval);
+        convLib.Converters.Add("ParseDateTime", ParseDateTime);
+        convLib.Converters.Add("First", First);
+        convLib.Converters.Add("Last", Last);
         convLib.NAryConverters.Add("OneOf", OneOf);
         convLib.NAryConverters.Add("Join", Join);
         convLib.NAryConverters.Add("IfThenElse", IfThenElse);
         convLib.NAryConverters.Add("ExprEvalN", ExprEvalN);
-        convLib.NAryConverters.Add("First", FirstFn);
-        convLib.NAryConverters.Add("Last", LastFn);
+        convLib.NAryConverters.Add("First", FirstN);
+        convLib.NAryConverters.Add("Last", LastN);
     }
 
-    static object FirstFn(object[] vals, string[] args)
+    static object First(object vals, string[] args)
+    {
+        return ((object[])vals)?.FirstOrDefault();
+    }
+
+    static object Last(object vals, string[] args)
+    {
+        return ((object[])vals)?.LastOrDefault();
+    }
+    static object FirstN(object[] vals, string[] args)
     {
         return vals?.FirstOrDefault();
     }
 
-    static object LastFn(object[] vals, string[] args)
+    static object LastN(object[] vals, string[] args)
     {
         return vals?.LastOrDefault();
     }
-    static object ConvertFn(object val, string[] args)
+    public static object ConvertFn(object val, string[] args)
     {
         if (val == null)
             return null;
@@ -306,6 +424,16 @@ public static class DefaultConverters
             throw new ArgumentException("Unknown method " + methodName);
 
         return method.Invoke(null, new [] {val});
+    }
+
+    static object ToDate(object val, string[] args)
+    {
+        return val == null ? null : Convert.ToDateTime(val);
+    }
+
+    static object ToDecimal(object val, string[] args)
+    {
+        return val == null ? null : Convert.ToDecimal(val);
     }
 
     static object ToString(object val, string[] args)
@@ -327,6 +455,22 @@ public static class DefaultConverters
             return null;
 
         return ((string)val).ToUpper();
+    }
+
+    static object ToUInt32(object val, string[] args)
+    {
+        return Convert.ToUInt32(val);
+    }
+
+    static object ToInt32(object val, string[] args)
+    {
+        if (val is string s)
+            return int.Parse(s);
+
+        if (val is long longVal)
+            return unchecked((int)longVal);
+
+        return Convert.ToInt32(val);
     }
 
     static object AsArrayWithOneItem(object val, string[] args)
@@ -479,6 +623,18 @@ public static class DefaultConverters
         if (args.Length > 1)
             expr.Bind(args[1], val ?? 0);
         return expr.Eval();
+    }
+
+    static object ParseDateTime(object val, string[] args)
+    {
+        if (args.Length == 0)
+            throw new ArgumentException("format expected");
+        if (val is DateTime)
+            return val;
+        string format = args[0].Trim('"').Trim('\'');
+        if (DateTime.TryParseExact((string)val, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
+            return dt;
+        return val;
     }
 
     static object ExprEvalN(object[] vals, string[] args)
