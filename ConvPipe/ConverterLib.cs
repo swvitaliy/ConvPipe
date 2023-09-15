@@ -124,7 +124,7 @@ public class ConverterLib
     {
         if (conv is { Length: > 0 })
         {
-            var pattern = @"^type\[\(?<type>\S+)\]$";
+            var pattern = @"^type\[(?<type>\S+)\]$";
             var mr = Regex.Match(conv[0], pattern, RegexOptions.IgnoreCase);
             if (mr.Success)
             {
