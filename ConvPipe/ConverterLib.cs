@@ -129,16 +129,18 @@ public class ConverterLib
             if (mr.Success)
             {
                 ans = ConvertTypedArray(args: conv.Skip(1).ToArray(), ans, typeName: mr.Groups["type"].Value);
+                return;
             }
-            else if (conv[0].ToLower() == "typeof")
+
+            if (conv[0].ToLower() == "typeof")
             {
                 ans = ConvertTypedArray(args: conv.Skip(1).ToArray(), ans);
+                return;
             }
+
         }
-        else
-        {
-            ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
-        }
+
+        ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
     }
 
     private object ConvertPipe(string[][] pipe, object val)
