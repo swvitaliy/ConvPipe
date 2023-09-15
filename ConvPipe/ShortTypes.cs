@@ -7,10 +7,10 @@ namespace ConvPipe;
  */
 class ShortTypes
 {
-    static string ProcessConverter(string tail)
+    public static string ProcessConverter(string tail)
         => ProcessConverter(tail.Split('|'));
 
-    static string ProcessConverter(string[] tail)
+    public static string ProcessConverter(string[] tail)
         => string.Join(" | ", tail.Select(ProcessTypes).ToArray()).Trim();
 
     static string ProcessTypes(string val)

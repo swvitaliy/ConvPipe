@@ -33,6 +33,19 @@ public class ConverterTests
     }
 
     [Test]
+    public void Int32OddPlusOneSumTest()
+    {
+        var arr = Enumerable.Range(1, 100).ToArray();
+        var cl = ConverterLib.CreateWithDefaults();
+        cl.Converters.Add("Int64OddPlusOne", object (object val, string[] args) => (long)val % 2 == 1 ? (long)val + 1 : (long)val);
+        cl.Converters.Add("SumInt64", object (object val, string[] args) => ((long[])val).Aggregate((a, b) => a + b));
+        var ans1 = cl.ConvertPipe("Int64[] | Each Type[System.Int64] Int64OddPlusOne | SumInt64", arr);
+        var ans2 = cl.ConvertPipe("Int64[] | Each TypeOf Int64OddPlusOne | SumInt64", arr);
+        Assert.AreEqual(ans1, 5100);
+        Assert.AreEqual(ans2, 5100);
+    }
+
+    [Test]
     public void AsArrayWithOneItemTest()
     {
         var cl = ConverterLib.CreateWithDefaults();

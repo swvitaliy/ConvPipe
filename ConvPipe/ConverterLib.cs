@@ -92,20 +92,20 @@ public class ConverterLib
 
     public object ConvertPipe(string pipeExpr, object val)
     {
+        pipeExpr = ShortTypes.ProcessConverter(pipeExpr);
         //var pipe = pipeExpr.Split('|').Select(str => str.Trim());
         var pipe = PipeTokenize(pipeExpr);
         return ConvertPipe(pipe, val);
     }
 
-    private Array ConvertTypedArray(string entity, string[] args, object val)
+    private Array ConvertTypedArray(string[] args, object val, string typeName = null)
     {
         var src = (Array)val;
         var len = src.Length;
-        var type = Type.GetType(args[0]);
+        var type = typeName == null ? src.GetType().GetElementType() : Type.GetType(typeName);
         if (type == null)
-            throw new Exception($"type \"{args[0]}\" not found");
+            throw new Exception($"type \"{typeName}\" not found");
         var dest = Array.CreateInstance(type, len);
-        args = args.Skip(1).ToArray();
         for (int i = 0; i < len; ++i)
         {
             var destItem = ConvertExpr(args, src.GetValue(i));
@@ -117,16 +117,23 @@ public class ConverterLib
 
     /**
      * Convert each element of input array.
-     * When passes a MapType [Entity], it will be converted to typed array.
+     * When passes a TypeOf, it will be converted to array with type of input array.
+     * When passes, for instance, Type[Int64], it will be converted to Int64[] array.
      */
     private void ConvertEach(string[] conv, ref object ans)
     {
-        if (conv is { Length:> 0 } && conv[0].ToLower() == "maptype")
+        if (conv is { Length: > 0 })
         {
-            if (conv is { Length: 1 })
-                throw new Exception("expect entity type");
-
-            ans = ConvertTypedArray(entity: conv[1], args: conv, ans);
+            var pattern = @"^type\[\(?<type>\S+)\]$";
+            var mr = Regex.Match(conv[0], pattern, RegexOptions.IgnoreCase);
+            if (mr.Success)
+            {
+                ans = ConvertTypedArray(args: conv.Skip(1).ToArray(), ans, typeName: mr.Groups["type"].Value);
+            }
+            else if (conv[0].ToLower() == "typeof")
+            {
+                ans = ConvertTypedArray(args: conv.Skip(1).ToArray(), ans);
+            }
         }
         else
         {
