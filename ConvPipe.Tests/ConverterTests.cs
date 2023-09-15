@@ -1,8 +1,4 @@
-using System;
-using ConvPipe;
-using NLua;
-using NUnit.Framework;
-using ConvPipe;
+using System.Dynamic;
 
 namespace ConvPipe.Tests;
 
@@ -217,5 +213,102 @@ function count(a) {
         Assert.AreEqual("hello", f);
         Assert.AreEqual("!", l);
         Assert.AreEqual(4, c);
+    }
+
+    [Test]
+    public void Js3Test()
+    {
+        const string jsLib = @"
+function fn(a) {
+    return a.TestList.Count;
+}
+function g(a) {
+   a.TestList.forEach((item) => {
+        log('I')
+        item.Name = 'B';
+    });
+}
+";
+
+        ExpandoObject record = new();
+        var dict = (IDictionary<string, object>)record;
+        dict["Name"] = "A";
+        dict["Value"] = "L";
+        var obj = new ListOwner();
+        obj.TestList.Add(record);
+
+        var cl = new ConverterLib();
+        var luaConv = new JsConverter(jsLib, null, Console.WriteLine);
+        luaConv.InitializeLib(cl);
+        cl.ConvertPipe("Js g", obj);
+        var ans = cl.ConvertPipe("Js fn", obj);
+        Assert.AreEqual(1, ans);
+        Assert.AreEqual("B", obj.TestList[0].Name);
+    }
+
+    [Test]
+    public void Xml1Test()
+    {
+        const string xml = @"
+<root>
+    <books>
+        <book><title>Three Musketeers</title><author>A. Duma</author><published_at>1844</published_at></book>
+        <book><title>Mysterious Island</title><author>Jules Verne</author><published_at>1875</published_at></book>
+        <book><title>War and Peace</title><author>Leo Tolstoy</author><published_at>1869</published_at></book>
+    </books>
+</root>
+";
+
+        string[] xmlArr =
+        {
+            @"<root><books>
+<book><title>Three Musketeers</title><author>A. Duma</author><published_at>1844</published_at></book>
+</books></root>",
+            @"<root><books>
+<book><title>Mysterious Island</title><author>Jules Verne</author><published_at>1875</published_at></book>
+</books></root>",
+            @"<root><books>
+<book><title>War and Peace</title><author>Leo Tolstoy</author><published_at>1869</published_at></book>
+</books></root>",
+        };
+
+        var cl = new ConverterLib();
+        XPathConverters.InitializeLib(cl);
+        var ans = cl.ConvertPipe(@"XPathDoc | XPath '/root/books/book/title'", xml);
+
+        Assert.IsTrue(ans is string[]);
+        var arr = (string[])ans;
+        Assert.AreEqual("Three Musketeers", arr[0]);
+        Assert.AreEqual("War and Peace", arr[2]);
+
+        DefaultConverters.InitializeLib(cl);
+
+        var first = cl.ConvertPipe(@"XPath '/root/books/book/author' | First", xml);
+        var last = cl.ConvertPipe(@"XPathNav '/root/books' | XPath 'book/author' | Last", xml);
+
+        Assert.IsTrue(first is string);
+        Assert.IsTrue(last is string);
+        Assert.AreEqual("A. Duma", first);
+        Assert.AreEqual("Leo Tolstoy", last);
+
+        var ret = cl.ConvertPipe(@"XPathDoc | XPath '/root/books/book/published_at' | Each ToInt32", xmlArr);
+
+        Assert.IsTrue(ret is object[]);
+        var a = (object[])ret;
+        Assert.AreEqual(3, a.Length);
+        Assert.AreEqual(1844, a[0]);
+        Assert.AreEqual(1875, a[1]);
+        Assert.AreEqual(1869, a[2]);
+
+    }
+
+    private class Itm
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    private class ListOwner {
+        public List<dynamic> TestList { get; set; } = new();
     }
 }

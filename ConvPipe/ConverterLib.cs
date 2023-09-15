@@ -1,10 +1,14 @@
 using System.Collections;
+using System.Dynamic;
 using System.Globalization;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
+using AutoMapper.Internal;
 using Jint;
 using Jint.Native;
 using NLua;
+using NUnit.Framework.Constraints;
 using org.matheval;
 
 namespace ConvPipe;
@@ -26,11 +30,19 @@ internal static class StringTokenizer
 
 public class ConverterLib
 {
+    public static Dictionary<string, Type> EntityTypes { get; set; } = new();
+
+    public static ConverterLib CreateWithDefaultsNoDbConfig(string luaScript = null, string jsScript = null,
+        Dictionary<string, object> globRef = null, Action<object> log = null)
+    {
+        return CreateWithDefaults(luaScript, jsScript, globRef, log);
+    }
+
     public static ConverterLib CreateWithDefaults(string luaScript = null, string jsScript = null, Dictionary<string, object> globRef = null, Action<object> log = null)
     {
         var convLib = new ConverterLib();
         DefaultConverters.InitializeLib(convLib);
-
+        XPathConverters.InitializeLib(convLib);
         if (luaScript != null)
         {
             var lc = new LuaConverters(luaScript);
@@ -64,7 +76,7 @@ public class ConverterLib
         return NAryConverters.ContainsKey(key);
     }
 
-    public object ConvertExpr(string[] expr, object val)
+    private object ConvertExpr(string[] expr, object val)
     {
         //string[] expr = convExpr.Split(' ').Select(str => str.Trim()).ToArray();
         if (expr.Length == 0)
@@ -82,10 +94,50 @@ public class ConverterLib
     {
         //var pipe = pipeExpr.Split('|').Select(str => str.Trim());
         var pipe = PipeTokenize(pipeExpr);
+        return ConvertPipe(pipe, val);
+    }
 
+    private Array ConvertTypedArray(string entity, string[] args, object val)
+    {
+        var src = (Array)val;
+        var len = src.Length;
+        var type = Type.GetType(args[0]);
+        if (type == null)
+            throw new Exception($"type \"{args[0]}\" not found");
+        var dest = Array.CreateInstance(type, len);
+        args = args.Skip(1).ToArray();
+        for (int i = 0; i < len; ++i)
+        {
+            var destItem = ConvertExpr(args, src.GetValue(i));
+            dest.SetValue(destItem, i);
+        }
+
+        return dest;
+    }
+
+    /**
+     * Convert each element of input array.
+     * When passes a MapType [Entity], it will be converted to typed array.
+     */
+    private void ConvertEach(string[] conv, ref object ans)
+    {
+        if (conv is { Length:> 0 } && conv[0].ToLower() == "maptype")
+        {
+            if (conv is { Length: 1 })
+                throw new Exception("expect entity type");
+
+            ans = ConvertTypedArray(entity: conv[1], args: conv, ans);
+        }
+        else
+        {
+            ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
+        }
+    }
+
+    private object ConvertPipe(string[][] pipe, object val)
+    {
         // foreach (var conv in pipe)
         //     val = ConvertExpr(conv, val);
-        //
         // return val;
 
         object ans = val;
@@ -94,18 +146,16 @@ public class ConverterLib
         {
             if (conv.First().ToLower() == "each")
             {
-                if (conv is { Length: > 1 })
-                    ans = ((object[])ans).Select(item => ConvertExpr(conv[1..], item)).ToArray();
-                else
+                if (conv is { Length: 1 })
                     eachMode = true;
+                else
+                    ConvertEach(conv[1..], ref ans);
 
                 continue;
             }
 
             if (eachMode)
-            {
-                ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
-            }
+                ConvertEach(conv, ref ans);
             else if (ans is IEnumerable<object>)
                 ans = ConvertExprArray(conv, (object[])ans);
             else
@@ -118,7 +168,7 @@ public class ConverterLib
         return ans;
     }
 
-    public object ConvertExprArray(string[] expr, object[] val)
+    private object ConvertExprArray(string[] expr, object[] val)
     {
         //string[] expr = convExpr.Split(' ').Select(str => str.Trim()).ToArray();
         if (expr.Length == 0)
@@ -126,7 +176,7 @@ public class ConverterLib
         var convName = expr[0];
         var convArgs = expr[1..];
         if (!NAryConverters.ContainsKey(convName))
-            throw new Exception($"converter \"{convName}\" not found");
+            throw new Exception($"nary converter \"{convName}\" not found");
 
         var conv = NAryConverters[convName];
         return conv(val, convArgs);
@@ -136,12 +186,21 @@ public class ConverterLib
     {
         var pipe = PipeTokenize(pipeExpr);
         object ans = val;
+        int index = 0;
         foreach (var conv in pipe)
         {
+            if (conv.First().ToLower() == "each")
+            {
+                var tail = pipe[index..];
+                return ConvertPipe(tail, ans);
+            }
+
             if (ans is IEnumerable<object>)
                 ans = ConvertExprArray(conv, (object[])ans);
             else
                 ans = ConvertExpr(conv, ans);
+
+            ++index;
         }
 
         if (ans is IDestObject d)
@@ -320,12 +379,19 @@ public static class XPathConverters
 
     private static object XPathDoc(object val, string[] args)
     {
-        return new XPathDocument(new StringReader((string)val));
+        var str = (string)val;
+        str = str.Replace(" xmlns=\"", " whocares=\"");
+        return new XPathDocument(new StringReader(str));
     }
 
     private static object XPathNav(object val, string[] args)
     {
-        var doc = new XPathDocument(new StringReader((string)val));
+        if (args.Length > 0)
+            return _XPathNav(val, args);
+
+        var str = (string)val;
+        str = str.Replace(" xmlns=\"", " whocares=\"");
+        var doc = new XPathDocument(new StringReader(str));
         return doc.CreateNavigator();
     }
 
@@ -337,6 +403,19 @@ public static class XPathConverters
 
     private static object XPath(object val, string[] args)
     {
+        var list = new List<string>();
+        XPathAccum(list, val, args);
+        return list.ToArray();
+    }
+
+    private static void XPathAccum(ICollection<string> list, object val, string[] args)
+    {
+        if (val == null)
+            throw new ArgumentException(nameof(val) + " should not be null");
+
+        if (val is string)
+            val = XPathNav(val, Array.Empty<string>());
+
         var navigator = val is XPathDocument xpd ? xpd.CreateNavigator() : (XPathNavigator)val;
 
         if (args is not { Length: 1 })
@@ -347,18 +426,46 @@ public static class XPathConverters
         XPathExpression expression = navigator.Compile(xpath);
         XPathNodeIterator iterator = navigator.Select(expression);
 
-        var list = new List<string>();
         while (iterator.MoveNext())
         {
             XPathNavigator item = iterator.Current;
             list.Add(item?.Value ?? string.Empty);
         }
+    }
+
+    private static object _XPathNav(object val, string[] args)
+    {
+        if (val == null)
+            throw new ArgumentException(nameof(val) + " should not be null");
+
+        if (val is string)
+            val = XPathNav(val, Array.Empty<string>());
+
+        var navigator = val is XPathDocument xpd ? xpd.CreateNavigator() : (XPathNavigator)val;
+
+        if (args is not { Length: 1 })
+            throw new ArgumentException("expect exactly one argument");
+
+        string xpath = args[0].Trim('\'').Trim('"');
+
+        XPathExpression expression = navigator.Compile(xpath);
+        XPathNodeIterator iterator = navigator.Select(expression);
+
+        var list = new List<XPathNavigator>();
+        while (iterator.MoveNext())
+            list.Add(iterator.Current?.CreateNavigator());
 
         return list.ToArray();
     }
 
     private static object XPathN(object[] val, string[] args)
-        => val.Select(item => XPath(item, args)).ToArray();
+    {
+        // return val.Select(item => XPath(item, args)).ToArray();
+        var list = new List<string>();
+        foreach (var item in val)
+            XPathAccum(list, item, args);
+        return list.ToArray();
+    }
 }
 
 public static class DefaultConverters
@@ -374,6 +481,7 @@ public static class DefaultConverters
 
         convLib.Converters.Add("Convert", ConvertFn);
         convLib.Converters.Add("ToString", ToString);
+        convLib.Converters.Add("ToUniversalTime", ToUniversalTime);
         convLib.Converters.Add("ToLower", ToLower);
         convLib.Converters.Add("ToUpper", ToUpper);
         convLib.Converters.Add("AsFirstItemOfArray", AsFirstItemOfArray);
@@ -386,12 +494,17 @@ public static class DefaultConverters
         convLib.Converters.Add("ParseDateTime", ParseDateTime);
         convLib.Converters.Add("First", First);
         convLib.Converters.Add("Last", Last);
+        convLib.Converters.Add("ConvertArray", ConvertArray);
+        convLib.Converters.Add("Check", CheckFn);
+        convLib.Converters.Add("Filter", Filter);
         convLib.NAryConverters.Add("OneOf", OneOf);
         convLib.NAryConverters.Add("Join", Join);
         convLib.NAryConverters.Add("IfThenElse", IfThenElse);
         convLib.NAryConverters.Add("ExprEvalN", ExprEvalN);
         convLib.NAryConverters.Add("First", FirstN);
         convLib.NAryConverters.Add("Last", LastN);
+        convLib.NAryConverters.Add("ConvertArray", ConvertArrayN);
+        convLib.NAryConverters.Add("Filter", FilterN);
     }
 
     static object First(object vals, string[] args)
@@ -438,7 +551,24 @@ public static class DefaultConverters
 
     static object ToString(object val, string[] args)
     {
+        if (val is DateTime dt && args.Length > 0)
+            return dt.ToString(args[0]);
         return val?.ToString();
+    }
+
+    static object ToUniversalTime(object val, string[] args)
+    {
+        if (val is string str)
+        {
+            if (!DateTime.TryParse(str, out var d))
+                throw new ArgumentException("Invalid date string: " + val);
+            val = d;
+        }
+
+        if (val is not DateTime dt)
+            throw new ArgumentException("Invalid date: " + val);
+
+        return dt.ToUniversalTime();
     }
 
     static object ToLower(object val, string[] args)
@@ -649,4 +779,129 @@ public static class DefaultConverters
 
         return expr.Eval();
     }
+
+    public static bool NUnitDynamicCheck(object val, string expr)
+    {
+        // Parse expression
+        var arr = expr.Split(".");
+        var path = new (string constraint, object[] args)[arr.Length];
+        var re = new Regex(@"\(([^\)]+)\)");
+        for (int i = 0; i < arr.Length; ++i)
+        {
+            var s = arr[i];
+            path[i].constraint = re.Replace(s, "");
+            var a = re.Match(s);
+            path[i].args = a.Groups[1].ToString().Split(",").Select(x => x.Trim()).ToArray();
+        }
+
+        return NUnitDynamicCheck(val, path);
+    }
+
+    public static bool NUnitDynamicCheck(object val, (string constraint, object[] args)[] path)
+    {
+        object ret = null;
+        Type prevType = typeof(NUnit.Framework.Is);
+        foreach (var item in path)
+        {
+            var prop = prevType.GetProperty(item.constraint);
+            if (prop != null)
+                ret = prop.GetValue(ret);
+            else
+            {
+                MethodInfo method = prevType.GetMethod(item.constraint);
+                if (method == null)
+                    throw new Exception("property or method not found " + item + ": " + string.Join(".", path));
+                ret = method.Invoke(ret, item.args);
+            }
+
+            prevType = ret.GetType();
+        }
+
+        if (ret == null)
+            throw new Exception("property not found " + path.Last() + ": " + string.Join(".", path));
+
+        if (ret is not IResolveConstraint expr)
+            throw new Exception("property " + path.Last() + " is not resolve constraint: " + string.Join(".", path));
+
+        var constraint = expr.Resolve();
+        var result = constraint.ApplyTo(val);
+        return result.IsSuccess;
+    }
+
+    static object CheckFn(object val, string[] args)
+    {
+        return NUnitDynamicCheck(val, args[0]);
+    }
+
+    static object FilterN(object[] vals, string[] args)
+        => Filter(vals, args);
+
+    static object Filter(object val, string[] args)
+    {
+        if (val == null)
+            return null;
+
+        if (!val.GetType().IsArray)
+            return null;
+
+        var src = (Array)val;
+        if (src.Length == 0)
+            return src;
+
+        var type = src.GetType().GetElementType();
+        if (type == null)
+            throw new Exception("not array");
+
+        var expr = args[0];
+
+        var listType = typeof(List<>);
+        var constructedListType = listType.MakeGenericType(type);
+        var dst = (IList)Activator.CreateInstance(constructedListType);
+
+        var len = src.Length;
+        int j = 0;
+        for (int i = 0; i < len; ++i)
+        {
+            if (NUnitDynamicCheck(src.GetValue(i), expr))
+                dst.Add(src.GetValue(i));
+
+            j++;
+        }
+
+        MethodInfo toArray = constructedListType.GetMethod("ToArray");
+        return toArray.Invoke(dst, Array.Empty<object>());
+    }
+
+    static object ConvertArray(object val, string[] args)
+    {
+        if (val == null)
+            return null;
+
+        if (!val.GetType().IsArray)
+            return null;
+
+        var typeStr = args[0];
+        var type = Type.GetType(typeStr);
+        if (type == null)
+            throw new ArgumentException("wrong type " + typeStr);
+
+        var src = (Array)val;
+        var len = src.Length;
+        var dst = Array.CreateInstance(type, len);
+        if (args.Length > 0)
+        {
+            for (int i = 0; i < len; ++i)
+                dst.SetValue(ConvertFn(src.GetValue(i), args[1..]), i);
+        }
+        else
+        {
+            for (int i = 0; i < len; ++i)
+                dst.SetValue(src.GetValue(i), i);
+        }
+
+        return dst;
+    }
+
+    static object ConvertArrayN(object[] vals, string[] args)
+        => ConvertArray(vals, args);
 }

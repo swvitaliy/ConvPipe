@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <AssemblyName>ConvPipe.Cli</AssemblyName>
         <AssemblyTitle>$(Product)</AssemblyTitle>
         <RootNamespace>ConvPipe</RootNamespace>
 
@@ -15,6 +14,8 @@
         <InvariantGlobalization>false</InvariantGlobalization>
 
         <Version>0.0.6</Version>
+
+        <PackageId>ConvPipe.Demo</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
