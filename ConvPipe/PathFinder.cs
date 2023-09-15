@@ -130,10 +130,18 @@ public class PathFinder
     public object GetValue(IDestObject tmp, string pathStr, bool multi, out string errMiddleElem,
         out bool hasElem, out ItemFinder itemFinder, out string[] path)
     {
+        pathStr = pathStr.Trim();
         path = pathStr.Split('.');
+
         errMiddleElem = null;
         hasElem = false;
         itemFinder = null;
+        if (path.First() == "$")
+        {
+            hasElem = true;
+            return tmp.Origin;
+        }
+
         for (int i = 0; i < path.Length; ++i)
         {
             if (IsItemFinder(path[i]))
