@@ -55,6 +55,16 @@ public class ConverterTests
     }
 
     [Test]
+    public void NotNullNotEmptyFilterTest()
+    {
+        var emails = new[] { "", "pushkin@mail.com", null, "a@b.c", "d@e.f" };
+        var cl = ConverterLib.CreateWithDefaults();
+        var ans = cl.RunPipe("Filter Not.Null.And.Not.Empty", emails);
+        Assert.AreEqual(ans, new[] {"pushkin@mail.com", "a@b.c", "d@e.f"});
+
+    }
+
+    [Test]
     public void AsArrayWithOneItemTest()
     {
         var cl = ConverterLib.CreateWithDefaults();
