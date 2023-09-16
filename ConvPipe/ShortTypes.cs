@@ -2,16 +2,35 @@ using System.Text.RegularExpressions;
 
 namespace ConvPipe;
 
-/**
- * Console.WriteLine(ShortTypes.ProcessConverter("Int64[] | Each PlusOneIfOdd | Max")); // Пример вызова функции ProcessConverter
- */
-class ShortTypes
+internal static class ShortTypes
 {
-    public static string ProcessConverter(string tail)
-        => ProcessConverter(tail.Split('|'));
+    public static string Process(string tail)
+        => Process(tail.Split('|'));
 
-    public static string ProcessConverter(string[] tail)
-        => string.Join(" | ", tail.Select(ProcessTypes).ToArray()).Trim();
+    private static Func<string, string>[] Processors =
+    {
+        ProcessEachEval,
+        ProcessReduceEval,
+        ProcessTypes,
+    };
+
+    private static string ApplyEachProcessor(string val)
+        => Processors.Aggregate(val, (current, proc) => proc(current.Trim()));
+
+    public static string Process(string[] tail)
+        => string.Join(" | ", tail.Select(ApplyEachProcessor).ToArray()).Trim();
+
+    private const string ReduceEvalPattern = @"^ReduceEval\[(?<type>[^\]]+)\]";
+    private static readonly Regex ReduceEvalRegex = new(ReduceEvalPattern, RegexOptions.IgnoreCase);
+
+    static string ProcessReduceEval(string val)
+        => ReduceEvalRegex.Replace(val, "Reduce Type[$1] ExprEval[$1]");
+
+    private const string EachEvalPattern = @"^EachEval\[(?<type>[^\]]+)\]";
+    private static readonly Regex EachEvalRegex = new(EachEvalPattern, RegexOptions.IgnoreCase);
+
+    static string ProcessEachEval(string val)
+        => EachEvalRegex.Replace(val, "Each Type[$1] ExprEval[$1]");
 
     static string ProcessTypes(string val)
     {

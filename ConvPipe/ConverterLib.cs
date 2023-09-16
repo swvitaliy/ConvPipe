@@ -19,7 +19,7 @@ internal static class StringTokenizer
     public static string[] Tokenize(this String str)
     {
         //var re = new Regex("(\\S+|\"[^\"]*\")");
-        var re = new Regex(@"[\""].+?[\""]|[^ ]+");
+        var re = new Regex(@"[\""].+?[\""]|[\'].+?[\']|\S+");
         var marr = re.Matches(str);
 
         return marr.Select(m => m.Value)
@@ -76,13 +76,19 @@ public class ConverterLib
         return NAryConverters.ContainsKey(key);
     }
 
+    private const string ConvPattern = @"^(?<name>\S+)\[(?<type>[^\]]+)\]$";
+    private Regex ConvRegex = new Regex(ConvPattern, RegexOptions.IgnoreCase);
+
     private object ConvertExpr(string[] expr, object val)
     {
         //string[] expr = convExpr.Split(' ').Select(str => str.Trim()).ToArray();
         if (expr.Length == 0)
             throw new Exception("expect converter name");
-        var convName = expr[0];
-        var convArgs = expr[1..];
+        var convExpr = expr[0];
+        var mr = ConvRegex.Match(convExpr);
+        var convName = mr.Success ? mr.Groups["name"].Value + "_Typed" : convExpr;
+        var convArgs = mr.Success ? new [] { mr.Groups["type"].Value }.Concat(expr[1..]).ToArray() : expr[1..];
+
         if (!Converters.ContainsKey(convName))
             throw new Exception($"converter \"{convName}\" not found");
 
@@ -90,19 +96,45 @@ public class ConverterLib
         return conv(val, convArgs);
     }
 
-    public object ConvertPipe(string pipeExpr, object val)
+    public object RunPipe(string pipeExpr, object val)
     {
-        pipeExpr = ShortTypes.ProcessConverter(pipeExpr);
+        pipeExpr = ShortTypes.Process(pipeExpr);
         //var pipe = pipeExpr.Split('|').Select(str => str.Trim());
         var pipe = PipeTokenize(pipeExpr);
-        return ConvertPipe(pipe, val);
+        return RunPipe(pipe, val);
     }
+
+    private static readonly Dictionary<string, string> SystemTypes = new Dictionary<string, string>()
+    {
+        { "bool", typeof(bool).ToString() },
+        { "byte", typeof(byte).ToString() },
+        { "char", typeof(char).ToString() },
+        { "decimal", typeof(decimal).ToString() },
+        { "double", typeof(double).ToString() },
+        { "float", typeof(float).ToString() },
+        { "int", typeof(int).ToString() },
+        { "long", typeof(long).ToString() },
+        { "object", typeof(object).ToString() },
+        { "sbyte", typeof(sbyte).ToString() },
+        { "short", typeof(short).ToString() },
+        { "string", typeof(string).ToString() },
+        { "uint", typeof(uint).ToString() },
+        { "ulong", typeof(ulong).ToString() },
+        { "ushort", typeof(ushort).ToString() },
+        { "uint32", typeof(uint).ToString() },
+        { "uint64", typeof(ulong).ToString() },
+        { "int64", typeof(long).ToString() },
+        { "int32", typeof(int).ToString() },
+    };
+
+    public static Type? ResolveType(string typeName)
+        => Type.GetType(SystemTypes.TryGetValue(typeName.ToLower(), out var result) ? result : typeName);
 
     private Array ConvertTypedArray(string[] args, object val, string typeName = null)
     {
         var src = (Array)val;
         var len = src.Length;
-        var type = typeName == null ? src.GetType().GetElementType() : Type.GetType(typeName);
+        var type = typeName == null ? src.GetType().GetElementType() : ResolveType(typeName);
         if (type == null)
             throw new Exception($"type \"{typeName}\" not found");
         var dest = Array.CreateInstance(type, len);
@@ -143,7 +175,48 @@ public class ConverterLib
         ans = ((object[])ans).Select(item => ConvertExpr(conv, item)).ToArray();
     }
 
-    private object ConvertPipe(string[][] pipe, object val)
+    public static object GetDefault(Type type) =>
+        type.IsValueType ? Activator.CreateInstance(type) : null;
+
+    private object ConvertReduceTypedArray(string[] args, object val, string? typeName = null)
+    {
+        var src = (Array)val;
+        var len = src.Length;
+        var type = typeName == null ? src.GetType().GetElementType() : ResolveType(typeName);
+        if (type == null)
+            throw new Exception($"type \"{typeName}\" not found");
+
+        var acc = GetDefault(type);
+        for (int i = 0; i < len; ++i)
+            acc = ConvertExprArray(args, new[] { acc, src.GetValue(i) });
+
+        return acc;
+    }
+
+    private void ConvertReduce(string[] conv, ref object ans)
+    {
+        if (conv is { Length: 0 })
+            throw new Exception("expect converter name");
+
+        var pattern = @"^type\[(?<type>\S+)\]$";
+        var mr = Regex.Match(conv[0], pattern, RegexOptions.IgnoreCase);
+        if (mr.Success)
+        {
+            ans = ConvertReduceTypedArray(args: conv.Skip(1).ToArray(), ans, typeName: mr.Groups["type"].Value);
+            return;
+        }
+
+        if (conv[0].ToLower() == "typeof")
+        {
+            ans = ConvertReduceTypedArray(args: conv.Skip(1).ToArray(), ans);
+            return;
+        }
+
+        var arr = (object[])ans;
+        ans = arr.Aggregate<object?, object>(null, (current, t) => ConvertExprArray(conv, new[] { current, t }));
+    }
+
+    private object RunPipe(string[][] pipe, object val)
     {
         // foreach (var conv in pipe)
         //     val = ConvertExpr(conv, val);
@@ -160,6 +233,12 @@ public class ConverterLib
                 else
                     ConvertEach(conv[1..], ref ans);
 
+                continue;
+            }
+
+            if (conv.First().ToLower() == "reduce")
+            {
+                ConvertReduce(conv[1..], ref ans);
                 continue;
             }
 
@@ -182,8 +261,12 @@ public class ConverterLib
         //string[] expr = convExpr.Split(' ').Select(str => str.Trim()).ToArray();
         if (expr.Length == 0)
             throw new Exception("expect converter name");
-        var convName = expr[0];
-        var convArgs = expr[1..];
+        var convExpr = expr[0];
+        var mr = ConvRegex.Match(convExpr);
+        var convName = mr.Success ? mr.Groups["name"].Value + "_Typed" : convExpr;
+        var convArgs = mr.Success ? new [] { mr.Groups["type"].Value }.Concat(expr[1..]).ToArray() : expr[1..];
+        // var convName = expr[0];
+        // var convArgs = expr[1..];
         if (!NAryConverters.ContainsKey(convName))
             throw new Exception($"nary converter \"{convName}\" not found");
 
@@ -201,7 +284,7 @@ public class ConverterLib
             if (conv.First().ToLower() == "each")
             {
                 var tail = pipe[index..];
-                return ConvertPipe(tail, ans);
+                return RunPipe(tail, ans);
             }
 
             if (ans is IEnumerable<object>)
@@ -497,9 +580,11 @@ public static class DefaultConverters
         convLib.Converters.Add("AsArrayWithOneItem", AsArrayWithOneItem);
         convLib.Converters.Add("Split", Split);
         convLib.Converters.Add("ConstValue", ConstValue);
+        convLib.Converters.Add("Const", ConstValue);
         convLib.Converters.Add("Property", Property);
         convLib.Converters.Add("ItemProperty", ItemProperty);
         convLib.Converters.Add("ExprEval", ExprEval);
+        convLib.Converters.Add("ExprEval_Typed", ExprEval_Typed);
         convLib.Converters.Add("ParseDateTime", ParseDateTime);
         convLib.Converters.Add("First", First);
         convLib.Converters.Add("Last", Last);
@@ -510,6 +595,9 @@ public static class DefaultConverters
         convLib.NAryConverters.Add("Join", Join);
         convLib.NAryConverters.Add("IfThenElse", IfThenElse);
         convLib.NAryConverters.Add("ExprEvalN", ExprEvalN);
+        convLib.NAryConverters.Add("ExprEval", ExprEvalN);
+        convLib.NAryConverters.Add("ExprEvalN_Typed", ExprEvalN_Typed);
+        convLib.NAryConverters.Add("ExprEval_Typed", ExprEvalN_Typed);
         convLib.NAryConverters.Add("First", FirstN);
         convLib.NAryConverters.Add("Last", LastN);
         convLib.NAryConverters.Add("ConvertArray", ConvertArrayN);
@@ -754,11 +842,41 @@ public static class DefaultConverters
         return string.Join(delim, ans);
     }
 
+    // it uses for call method by reflection
+    public static T ExprEvalReflection<T>(Expression expr)
+        => expr.Eval<T>();
+
+    static object ExprEval_Typed(object val, string[] args)
+    {
+        if (args.Length < 2)
+            throw new ArgumentException("expression expected");
+        var exprStr = args[1].Trim('"').Trim('\'');
+        Expression expr = new(exprStr);
+        if (args.Length > 2)
+            expr.Bind(args[2], val ?? 0);
+
+        var typeName = args[0];
+        var type = ConverterLib.ResolveType(typeName);
+        if (type == null)
+            throw new ArgumentException("unknown type " + typeName);
+
+        MethodInfo method = typeof(DefaultConverters).GetMethod(nameof(ExprEvalReflection));
+        MethodInfo generic = method.MakeGenericMethod(type);
+        try
+        {
+            return generic.Invoke(null, new[] { expr });
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"Error while evaluate expression \"{exprStr}\"", e);
+        }
+    }
+
     static object ExprEval(object val, string[] args)
     {
         if (args.Length == 0)
             throw new ArgumentException("expression expected");
-        Expression expr = new(args[0].Trim('"'));
+        Expression expr = new(args[0].Trim('"').Trim('\''));
         if (args.Length > 1)
             expr.Bind(args[1], val ?? 0);
         return expr.Eval();
@@ -776,9 +894,38 @@ public static class DefaultConverters
         return val;
     }
 
+    static object ExprEvalN_Typed(object[] vals, string[] args)
+    {
+        var exprStr = args[1].Trim('"').Trim('\'');
+        Expression expr = new(exprStr);
+        for (int i = 2; i < args.Length; ++i)
+        {
+            if ((i - 2) >= vals.Length)
+                throw new ArgumentException("expected value for " + args[i]);
+            expr.Bind(args[i], vals[i - 2]);
+        }
+
+        var typeName = args[0];
+        var type = ConverterLib.ResolveType(typeName);
+        if (type == null)
+            throw new ArgumentException("unknown type " + typeName);
+
+
+        MethodInfo method = typeof(DefaultConverters).GetMethod(nameof(ExprEvalReflection));
+        MethodInfo generic = method.MakeGenericMethod(type);
+        try
+        {
+            return generic.Invoke(null, new[] { expr });
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"Error while evaluate expression \"{exprStr}\"", e);
+        }
+    }
+
     static object ExprEvalN(object[] vals, string[] args)
     {
-        Expression expr = new(args[0].Trim('"'));
+        Expression expr = new(args[0].Trim('"').Trim('\''));
         for (int i = 1; i < args.Length; ++i)
         {
             if ((i - 1) >= vals.Length)

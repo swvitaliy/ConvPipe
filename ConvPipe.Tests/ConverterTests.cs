@@ -28,28 +28,37 @@ public class ConverterTests
     public void ToInt32Test()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("Convert ToInt32", (long)123);
+        var r = cl.RunPipe("Convert ToInt32", (long)123);
         Assert.AreEqual(r, 123);
     }
 
     [Test]
-    public void Int32OddPlusOneSumTest()
+    public void Int64ArrayOddPlusOneSumTest()
     {
         var arr = Enumerable.Range(1, 100).ToArray();
         var cl = ConverterLib.CreateWithDefaults();
         cl.Converters.Add("Int64OddPlusOne", object (object val, string[] args) => (long)val % 2 == 1 ? (long)val + 1 : (long)val);
         cl.Converters.Add("SumInt64", object (object val, string[] args) => ((long[])val).Aggregate((a, b) => a + b));
-        var ans1 = cl.ConvertPipe("Int64[] | Each Type[System.Int64] Int64OddPlusOne | SumInt64", arr);
-        var ans2 = cl.ConvertPipe("Int64[] | Each TypeOf Int64OddPlusOne | SumInt64", arr);
+        var ans1 = cl.RunPipe("Int64[] | Each Type[System.Int64] Int64OddPlusOne | SumInt64", arr);
+        var ans2 = cl.RunPipe("Int64[] | Each TypeOf Int64OddPlusOne | SumInt64", arr);
         Assert.AreEqual(ans1, 5100);
         Assert.AreEqual(ans2, 5100);
+    }
+
+    [Test]
+    public void Int64ArrayEachEvalReduceEvalTest()
+    {
+        var arr = Enumerable.Range(1, 100).ToArray();
+        var cl = ConverterLib.CreateWithDefaults();
+        var ans = cl.RunPipe("Int64[] | EachEval[Int64] 'IF(a%2==1, a+1, a)' a | ReduceEval[Int64] 'acc + v' acc v", arr);
+        Assert.AreEqual(ans, 5100);
     }
 
     [Test]
     public void AsArrayWithOneItemTest()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("Convert ToInt32 | AsArrayWithOneItem", (long)123);
+        var r = cl.RunPipe("Convert ToInt32 | AsArrayWithOneItem", (long)123);
         Assert.NotNull(r);
         Assert.AreEqual(r.GetType(), typeof(int[]));
         Assert.AreEqual((r as int[]).Length, 1);
@@ -60,7 +69,7 @@ public class ConverterTests
     public void AsArrayWithOneItemTest2()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("AsArrayWithOneItem", new SimpleRecord() { Id = 1, Name = "A" });
+        var r = cl.RunPipe("AsArrayWithOneItem", new SimpleRecord() { Id = 1, Name = "A" });
         Assert.NotNull(r);
         Assert.AreEqual(r.GetType(), typeof(SimpleRecord[]));
         Assert.AreEqual((r as SimpleRecord[]).Length, 1);
@@ -72,7 +81,7 @@ public class ConverterTests
     public void ExprEvalTest0()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("ExprEval \"4 - 1\"", null);
+        var r = cl.RunPipe("ExprEval \"4 - 1\"", null);
         Assert.NotNull(r);
         Assert.AreEqual(r, 3);
     }
@@ -82,7 +91,7 @@ public class ConverterTests
     public void ExprEvalTest1()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("ExprEval \"a - 1\" a", 7);
+        var r = cl.RunPipe("ExprEval \"a - 1\" a", 7);
         Assert.NotNull(r);
         Assert.AreEqual(r, 6);
     }
@@ -105,7 +114,7 @@ public class ConverterTests
     public void GenderTest()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("ExprEval \"a - 1\" a | Convert ToInt32", 2);
+        var r = cl.RunPipe("ExprEval \"a - 1\" a | Convert ToInt32", 2);
         var a = new A();
         var d = new TypedDestObject<A>(a);
         d.SetProperty("g", r);
@@ -116,7 +125,7 @@ public class ConverterTests
     public void ConvertTest0()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("Convert ToUInt64", null);
+        var r = cl.RunPipe("Convert ToUInt64", null);
         Assert.AreEqual(r, null);
     }
 
@@ -124,7 +133,7 @@ public class ConverterTests
     public void ConvertTest1()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("Convert ToInt32", "17");
+        var r = cl.RunPipe("Convert ToInt32", "17");
         Assert.AreEqual(r, 17);
     }
 
@@ -132,7 +141,7 @@ public class ConverterTests
     public void ConvertTest2()
     {
         var cl = ConverterLib.CreateWithDefaults();
-        var r = cl.ConvertPipe("Convert ToDateTime", "2022-02-01");
+        var r = cl.RunPipe("Convert ToDateTime", "2022-02-01");
         Assert.AreEqual(r, DateTime.Parse("2022-02-01"));
     }
 
@@ -149,7 +158,7 @@ end
         var cl = new ConverterLib();
         var luaConv = new LuaConverters(luaLib);
         luaConv.InitializeLib(cl);
-        var ans = cl.ConvertPipe("Lua fn", "hello");
+        var ans = cl.RunPipe("Lua fn", "hello");
         Assert.AreEqual("hello world!", ans);
     }
 
@@ -195,7 +204,7 @@ function fn(a) {
         var cl = new ConverterLib();
         var luaConv = new JsConverter(jsLib);
         luaConv.InitializeLib(cl);
-        var ans = cl.ConvertPipe("Js fn", "hello");
+        var ans = cl.RunPipe("Js fn", "hello");
         Assert.AreEqual("hello world!", ans);
     }
 
@@ -253,8 +262,8 @@ function g(a) {
         var cl = new ConverterLib();
         var luaConv = new JsConverter(jsLib, null, Console.WriteLine);
         luaConv.InitializeLib(cl);
-        cl.ConvertPipe("Js g", obj);
-        var ans = cl.ConvertPipe("Js fn", obj);
+        cl.RunPipe("Js g", obj);
+        var ans = cl.RunPipe("Js fn", obj);
         Assert.AreEqual(1, ans);
         Assert.AreEqual("B", obj.TestList[0].Name);
     }
@@ -287,7 +296,7 @@ function g(a) {
 
         var cl = new ConverterLib();
         XPathConverters.InitializeLib(cl);
-        var ans = cl.ConvertPipe(@"XPathDoc | XPath '/root/books/book/title'", xml);
+        var ans = cl.RunPipe(@"XPathDoc | XPath '/root/books/book/title'", xml);
 
         Assert.IsTrue(ans is string[]);
         var arr = (string[])ans;
@@ -296,15 +305,15 @@ function g(a) {
 
         DefaultConverters.InitializeLib(cl);
 
-        var first = cl.ConvertPipe(@"XPath '/root/books/book/author' | First", xml);
-        var last = cl.ConvertPipe(@"XPathNav '/root/books' | XPath 'book/author' | Last", xml);
+        var first = cl.RunPipe(@"XPath '/root/books/book/author' | First", xml);
+        var last = cl.RunPipe(@"XPathNav '/root/books' | XPath 'book/author' | Last", xml);
 
         Assert.IsTrue(first is string);
         Assert.IsTrue(last is string);
         Assert.AreEqual("A. Duma", first);
         Assert.AreEqual("Leo Tolstoy", last);
 
-        var ret = cl.ConvertPipe(@"XPathDoc | XPath '/root/books/book/published_at' | Each ToInt32", xmlArr);
+        var ret = cl.RunPipe(@"XPathDoc | XPath '/root/books/book/published_at' | Each ToInt32", xmlArr);
 
         Assert.IsTrue(ret is object[]);
         var a = (object[])ret;

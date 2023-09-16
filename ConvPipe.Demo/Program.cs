@@ -124,7 +124,7 @@ static class Handler
         var cl = ConverterLib.CreateWithDefaults(luaScript, jsScript, globVars);
         // Adding a new converter extensions here!
 
-        var r = cl.ConvertPipe(opts.Pipeline, input);
+        var r = cl.RunPipe(opts.Pipeline, input);
 
         if (opts.Json && r is ExpandoObject)
             r = JsonConvert.SerializeObject(r);
