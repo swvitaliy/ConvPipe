@@ -1,4 +1,5 @@
 using System.Dynamic;
+using ConvPipe.Converters;
 
 namespace ConvPipe.Tests;
 
@@ -27,7 +28,7 @@ public class ConverterTests
     [Test]
     public void ToInt32Test()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("Convert ToInt32", (long)123);
         Assert.AreEqual(r, 123);
     }
@@ -36,7 +37,7 @@ public class ConverterTests
     public void Int64ArrayOddPlusOneSumTest()
     {
         var arr = Enumerable.Range(1, 100).ToArray();
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         cl.Converters.Add("Int64OddPlusOne", object (object val, string[] args) => (long)val % 2 == 1 ? (long)val + 1 : (long)val);
         cl.Converters.Add("SumInt64", object (object val, string[] args) => ((long[])val).Aggregate((a, b) => a + b));
         var ans1 = cl.RunPipe("Int64[] | Each Type[System.Int64] Int64OddPlusOne | SumInt64", arr);
@@ -49,7 +50,7 @@ public class ConverterTests
     public void Int64ArrayEachEvalReduceEvalTest()
     {
         var arr = Enumerable.Range(1, 100).ToArray();
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var ans = cl.RunPipe("Int64[] | EachEval[Int64] 'IF(a%2==1, a+1, a)' a | ReduceEval[Int64] 'acc + v' acc v", arr);
         Assert.AreEqual(ans, 5100);
     }
@@ -58,7 +59,7 @@ public class ConverterTests
     public void NotNullNotEmptyFilterTest()
     {
         var emails = new[] { "", "pushkin@mail.com", null, "a@b.c", "d@e.f" };
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var ans = cl.RunPipe("Filter Not.Null.And.Not.Empty", emails);
         Assert.AreEqual(ans, new[] {"pushkin@mail.com", "a@b.c", "d@e.f"});
 
@@ -67,7 +68,7 @@ public class ConverterTests
     [Test]
     public void AsArrayWithOneItemTest()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("Convert ToInt32 | AsArrayWithOneItem", (long)123);
         Assert.NotNull(r);
         Assert.AreEqual(r.GetType(), typeof(int[]));
@@ -78,7 +79,7 @@ public class ConverterTests
     [Test]
     public void AsArrayWithOneItemTest2()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("AsArrayWithOneItem", new SimpleRecord() { Id = 1, Name = "A" });
         Assert.NotNull(r);
         Assert.AreEqual(r.GetType(), typeof(SimpleRecord[]));
@@ -90,7 +91,7 @@ public class ConverterTests
     [Test]
     public void ExprEvalTest0()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("ExprEval \"4 - 1\"", null);
         Assert.NotNull(r);
         Assert.AreEqual(r, 3);
@@ -100,7 +101,7 @@ public class ConverterTests
     [Test]
     public void ExprEvalTest1()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("ExprEval \"a - 1\" a", 7);
         Assert.NotNull(r);
         Assert.AreEqual(r, 6);
@@ -109,7 +110,7 @@ public class ConverterTests
     [Test]
     public void ExprEvalNTest()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.ConvertPipeArray("ExprEvalN \"a - b\" a b", new object[] {7, 3});
         Assert.NotNull(r);
         Assert.AreEqual(r, 4);
@@ -123,7 +124,7 @@ public class ConverterTests
     [Test]
     public void GenderTest()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("ExprEval \"a - 1\" a | Convert ToInt32", 2);
         var a = new A();
         var d = new TypedDestObject<A>(a);
@@ -134,7 +135,7 @@ public class ConverterTests
     [Test]
     public void ConvertTest0()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("Convert ToUInt64", null);
         Assert.AreEqual(r, null);
     }
@@ -142,7 +143,7 @@ public class ConverterTests
     [Test]
     public void ConvertTest1()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("Convert ToInt32", "17");
         Assert.AreEqual(r, 17);
     }
@@ -150,7 +151,7 @@ public class ConverterTests
     [Test]
     public void ConvertTest2()
     {
-        var cl = ConverterLib.CreateWithDefaults();
+        var cl = Pipe.CreateWithDefaults();
         var r = cl.RunPipe("Convert ToDateTime", "2022-02-01");
         Assert.AreEqual(r, DateTime.Parse("2022-02-01"));
     }
@@ -165,7 +166,7 @@ function fn(a)
 end
 ";
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         var luaConv = new LuaConverters(luaLib);
         luaConv.InitializeLib(cl);
         var ans = cl.RunPipe("Lua fn", "hello");
@@ -189,7 +190,7 @@ function count(a)
 end
 ";
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         var luaConv = new LuaConverters(luaLib);
         luaConv.InitializeLib(cl);
         var arr = new string[] { "hello", ",", "world", "!" };
@@ -211,7 +212,7 @@ function fn(a) {
 }
 ";
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         var luaConv = new JsConverter(jsLib);
         luaConv.InitializeLib(cl);
         var ans = cl.RunPipe("Js fn", "hello");
@@ -235,7 +236,7 @@ function count(a) {
 }
 ";
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         var jsConv = new JsConverter(jsLib, null);
         jsConv.InitializeLib(cl);
         var arr = new string[] { "hello", ",", "world", "!" };
@@ -269,7 +270,7 @@ function g(a) {
         var obj = new ListOwner();
         obj.TestList.Add(record);
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         var luaConv = new JsConverter(jsLib, null, Console.WriteLine);
         luaConv.InitializeLib(cl);
         cl.RunPipe("Js g", obj);
@@ -304,7 +305,7 @@ function g(a) {
 </books></root>",
         };
 
-        var cl = new ConverterLib();
+        var cl = new Pipe();
         XPathConverters.InitializeLib(cl);
         var ans = cl.RunPipe(@"XPathDoc | XPath '/root/books/book/title'", xml);
 
@@ -313,7 +314,7 @@ function g(a) {
         Assert.AreEqual("Three Musketeers", arr[0]);
         Assert.AreEqual("War and Peace", arr[2]);
 
-        DefaultConverters.InitializeLib(cl);
+        StdConverters.InitializeLib(cl);
 
         var first = cl.RunPipe(@"XPath '/root/books/book/author' | First", xml);
         var last = cl.RunPipe(@"XPathNav '/root/books' | XPath 'book/author' | Last", xml);

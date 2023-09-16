@@ -121,7 +121,7 @@ static class Handler
             }
         }
 
-        var cl = ConverterLib.CreateWithDefaults(luaScript, jsScript, globVars);
+        var cl = Pipe.CreateWithDefaults(luaScript, jsScript, globVars);
         // Adding a new converter extensions here!
 
         var r = cl.RunPipe(opts.Pipeline, input);
