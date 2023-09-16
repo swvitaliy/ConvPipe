@@ -9,7 +9,7 @@
         <OutputType>Library</OutputType>
 
         <DefaultItemExcludes>$(DefaultItemExcludes)</DefaultItemExcludes>
-        <VersionPrefix>0.0.9</VersionPrefix>
+        <VersionPrefix>0.0.10</VersionPrefix>
         <TargetFramework>net7.0</TargetFramework>
         <InvariantGlobalization>false</InvariantGlobalization>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
