@@ -9,10 +9,11 @@
         <OutputType>Library</OutputType>
 
         <DefaultItemExcludes>$(DefaultItemExcludes)</DefaultItemExcludes>
-        <VersionPrefix>0.0.11</VersionPrefix>
+        <VersionPrefix>0.0.13</VersionPrefix>
         <TargetFramework>net7.0</TargetFramework>
         <InvariantGlobalization>false</InvariantGlobalization>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,6 +22,7 @@
         <PackageReference Include="NLua" Version="1.6.0" />
         <PackageReference Include="org.matheval" Version="1.0.0.3" />
         <PackageReference Include="NUnit" Version="3.13.2" />
+        <None Include="..\README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
     
 </Project>
