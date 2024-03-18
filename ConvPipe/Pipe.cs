@@ -23,7 +23,7 @@ internal static class StringTokenizer
 
 public class Pipe
 {
-    public static Pipe CreateWithDefaults(string luaScript = null, string jsScript = null, Dictionary<string, object> globRef = null, Action<object> log = null)
+    public static Pipe CreateWithDefaults(string luaScript = null, Dictionary<string, object> globRef = null, Action<object> log = null)
     {
         var convLib = new Pipe();
         StdConverters.InitializeLib(convLib);
@@ -32,12 +32,6 @@ public class Pipe
         {
             var lc = new LuaConverters(luaScript);
             lc.InitializeLib(convLib);
-        }
-
-        if (jsScript != null)
-        {
-            var jsc = new JsConverter(jsScript, null, log);
-            jsc.InitializeLib(convLib);
         }
 
         if (globRef != null)

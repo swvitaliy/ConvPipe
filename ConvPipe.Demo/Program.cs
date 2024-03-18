@@ -54,23 +54,6 @@ class Config
         return acc;
     }
 
-    public string GetJsScript()
-    {
-        if (!string.IsNullOrEmpty(JsLibFile) && !string.IsNullOrEmpty(JsLibDirectory))
-            throw new ArgumentOutOfRangeException("Both mutually exclusive options (JsLibFile and JsLibDirectory) are setting up.");
-
-        if (!string.IsNullOrEmpty(JsLibFile))
-            return File.ReadAllText(ResolvePath(JsLibFile));
-
-        if (!string.IsNullOrEmpty(JsLibDirectory))
-            return ReadAllDirectory(ResolvePath(JsLibDirectory));
-
-        if (!string.IsNullOrEmpty(JsLibFile))
-            return File.ReadAllText(ResolvePath(JsLibFile));
-
-        return string.Empty;
-    }
-
     public string GetLuaScript()
     {
         if (!string.IsNullOrEmpty(LuaLibFile) && !string.IsNullOrEmpty(LuaLibDirectory))
@@ -117,11 +100,10 @@ static class Handler
             if (config != null)
             {
                 luaScript = config.GetLuaScript();
-                jsScript = config.GetJsScript();
             }
         }
 
-        var cl = Pipe.CreateWithDefaults(luaScript, jsScript, globVars);
+        var cl = Pipe.CreateWithDefaults(luaScript, globVars);
         // Adding a new converter extensions here!
 
         var r = cl.RunPipe(opts.Pipeline, input);

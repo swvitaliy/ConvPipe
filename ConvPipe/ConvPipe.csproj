@@ -10,7 +10,7 @@
 
         <DefaultItemExcludes>$(DefaultItemExcludes)</DefaultItemExcludes>
         <VersionPrefix>0.0.13</VersionPrefix>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
         <InvariantGlobalization>false</InvariantGlobalization>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageReadmeFile>README.md</PackageReadmeFile>

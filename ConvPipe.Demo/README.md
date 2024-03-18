@@ -28,9 +28,9 @@ make publish_min
 
 ```bin
 mkdir -p ~/Bin/ConvPipe
-cp -pr bin/release/net6.0/linux-x64/publish/* ~/Bin/ConvPipe
-chmod ug+x ~/Bin/ConvPipe/ConvPipe.Cli
-ln -s ~/Bin/ConvPipe/ConvPipe.Cli ~/Bin/convpipe
+cp -pr bin/Release/net8.0/linux-x64/publish/* ~/Bin/ConvPipe
+chmod ug+x ~/Bin/ConvPipe/ConvPipe.Demo
+ln -s ~/Bin/ConvPipe/ConvPipe.Demo ~/Bin/convpipe
 echo 'export PATH=$PATH:~/Bin' >> ~/.bashrc && source ~/.bashrc
 ```
 
@@ -129,49 +129,9 @@ class Config
 
     // Путь до директории с файлами lua библиотек
     public string LuaLibDirectory { get; set; }
-
-    // Путь до файла js библиотеки
-    public string JsLibFile { get; set; }
-
-    // Путь до директории с файлами js библиотек
-    public string JsLibDirectory { get; set; }
 ```
 
 Пути до файлов и директорий могут быть относительными. 
-
-#### Call a js function from single file
-
-Set config parameter `JslibFile` value `lib.js`
-
-Run:
-
-```bash
-convpipe "Js Hello" "World" -n
-```
-
-Output:
-
-```text
-Hello World!
-```
-
-#### Call a js function from directory
-
-Set config parameter "JsLibDirectory" value "jsLib"
-
-Run:
-
-```bash
-convpipe "Convert ToInt32 | Js inc" 15 -n
-```
-
-Output:
-
-```text
-16
-```
-
-Обратите внимание, что предварительно необходимо преобразовать входную строку в число.
 
 ##### Call a lua function from file
 
