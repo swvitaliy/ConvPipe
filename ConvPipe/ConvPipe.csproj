@@ -9,7 +9,8 @@
         <OutputType>Library</OutputType>
 
         <DefaultItemExcludes>$(DefaultItemExcludes)</DefaultItemExcludes>
-        <VersionPrefix>0.0.13</VersionPrefix>
+        <VersionPrefix>0.0.15</VersionPrefix>
+        <TargetFramework>net8.0</TargetFramework>
         <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
         <InvariantGlobalization>false</InvariantGlobalization>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
