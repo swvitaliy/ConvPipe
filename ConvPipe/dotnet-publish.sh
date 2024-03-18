@@ -10,7 +10,10 @@ parse_version_csproj() {
 
 PACKAGE_VERSION=$(parse_version_csproj ConvPipe.csproj)
 
+echo "Publishing version ${PACKAGE_VERSION}"
+
 APIKEY=$(cat ../nuget-apikey.txt)
 
 dotnet publish -c Release && \
+  dotnet pack -c Release ConvPipe.csproj && \
   dotnet nuget push -s 'https://api.nuget.org/v3/index.json' -k "${APIKEY}" "bin/Release/ConvPipe.${PACKAGE_VERSION}.nupkg"
